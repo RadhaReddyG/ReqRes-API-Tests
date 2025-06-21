@@ -1,0 +1,182 @@
+{
+	"info": {
+		"_postman_id": "095e99df-5700-4732-a6d1-bb824905ab05",
+		"name": "GitHub Search API -Rate Limit Test",
+		"description": "# **Practical Scenario 1:**\n\n1. **Configure Postman to handle rate limiting for an API. Describe your approach to managing retries and ensuring that requests are not throttled.**\n    \n\n**`1. Understand the API's Rate Limits`**\n\n**`Read API documentation`** `to understand limits (e.g., 30 requests/minute).`\n\n`Identify key response headers:`\n\n`X-RateLimit-Limit`\n\n`X-RateLimit-Remaining`\n\n`X-RateLimit-Reset`\n\n**`2. Throttle Requests in Pre-request Scripts`**\n\n`Prevent hitting the limit by spacing out requests manually`\n\n**`3. Implement Retry Logic in Postman`**\n\n`In the` **`Tests tab`** `of a request, detect throttling by status codes 429 or 403 and schedule a retry after the reset period.`\n\n**Practical Scenario 2:**\n\n**2.Analyze a complex API response using Postman’s console and debugging tools. Identify patterns and anomalies, and explain your findings.**\n\n**Analyzing Response :**\n\n`Endpoint Used:` [<code>https://api.github.com/search/repositories?q=react&amp;per_page=5</code>](https://api.github.com/search/repositories?q=react&per_page=5)\n\n`Query Parameters: q=react , per_page=5`\n\n`Response Type: JSON`\n\n`Total Results (total_count): 6,091,770`\n\n`Pagination Present: Yes (only a subset of results is returned per page)`\n\n**`Postman Console Observations:`**\n\n`Status: 200 OK`\n\n`Response time: Varies, likely under 1000ms`\n\n`Response size: Large (>10KB)`\n\n**Debugging in Postman:**\n\n`Verify Query Param construction: ensure it’s q=react, not a typo like q==react.`\n\n`Observe Response Headers :`\n\n`X-RateLimit-Limit, X-RateLimit-Remaining: Check GitHub's rate limit.`\n\n`X-RateLimit-Used`\n\n`X-RateLimit-Reset`\n\n`X-RateLimit-Resource: search`\n\n**`Link header:`** `If paginated, you’ll see next, prev, last, and first page URLs.`\n\n**Patterns Identified**:\n\n`Common Repository Metadata Fields   Across the top repositories, these fields are consistent:`\n\n`id, name, full_name, owner, html_url, description, language, forks_count, watchers_count, open_issues_count`\n\n`Most repositories have a license field (mostly MIT)`\n\n`default_branch is either main or master`\n\n**`Common Topics`**`   Topics like \"react\", \"redux\", \"webpack\", \"babel\", \"typescript\", and \"design-system\" appear repeatedly.`\n\n`topics array is well-populated in many cases, indicating a structured tagging system.`\n\n**`Usage of Languages`**`   JavaScript and TypeScript dominate the language field.`\n\n**Anomalies and Inconsistencies:**\n\n`Duplicate name Values All repositories are named react, which is expected from the search query.`\n\n`Differentiation is in the full_name (owner/repo), e.g., primer/react, duxianwei520/react`\n\n`Discrepancy in description Field Some descriptions are non-English (e.g., Chinese).`\n\n`Example: \"React+webpack+redux+ant design+axios+less Impacts readability if the consumer expects English.`\n\n`Outdated or Irrelevant Results The repositories are not sorted strictly by popularity (e.g., stargazers).`\n\n`Some have low recent activity (last push or update may be months old).`\n\n`You'd expect official facebook/react to appear, but it doesn’t - due to pagination limits.`",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36255263",
+		"_collection_link": "https://www.postman.com/radhabontha/workspace/7153c75a-8ad5-4f1c-9260-59e486bc6bdd/collection/36255263-095e99df-5700-4732-a6d1-bb824905ab05?action=share&source=collection_link&creator=36255263"
+	},
+	"item": [
+		{
+			"name": "SearchRepos",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Throttle Requests in Pre-request Scripts",
+							"//Prevent hitting the limit by spacing out requests manually",
+							"const last = pm.environment.get(\"search_last\") || 0;",
+							"const retry = pm.environment.get(\"search_retry\");",
+							"const now = Date.now();",
+							"if (retry && now < parseInt(retry)) {",
+							"    pm.execution.setNextRequest(\"SearchReset\");",
+							"    return;",
+							"}",
+							"if (now - last < 2000) {",
+							"    pm.execution.setNextRequest(pm.info.requestName); ",
+							"    return;",
+							"}",
+							"pm.environment.set(\"search_last\", now);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"///Detect throttling by status codes 429 or 403 and schedule a retry after the reset period ",
+							"const resCode = pm.response.code;",
+							"if (resCode === 403 || resCode === 429) {",
+							"    const reset = parseInt(pm.response.headers.get(\"X-RateLimit-Reset\")) * 1000;",
+							"    const waitMs = reset - Date.now() + 1000;",
+							"    pm.environment.set(\"search_retry\", (Date.now() + waitMs).toString());",
+							"    postman.execution.setNextRequest(pm.info.requestName);",
+							"} else {",
+							"    pm.environment.unset(\"search_retry\");",
+							"}",
+							"",
+							"const repos = pm.response.json().items;",
+							"",
+							"// Test 1: Ensure all repos have non-null `license`",
+							"pm.test(\"All repos should have a license\", function () {",
+							"    repos.forEach(repo => {",
+							"        pm.expect(repo.license).to.not.be.null;",
+							"    });",
+							"});",
+							"",
+							"// Test 2: Alert if language is 'JavaScript' but topic includes 'typescript'",
+							"pm.test(\"Flag mismatched language vs topics\", function () {",
+							"    repos.forEach(repo => {",
+							"        if (repo.language === \"JavaScript\" && repo.topics.includes(\"typescript\")) {",
+							"            console.warn(`Repo ${repo.full_name} may be misclassified`);",
+							"        }",
+							"    });",
+							"});",
+							"",
+							"// Test 3: Large repo size warning",
+							"pm.test(\"Warn on very large repositories\", function () {",
+							"    repos.forEach(repo => {",
+							"        if (repo.size > 1000000) {",
+							"            console.warn(`Repo ${repo.full_name} exceeds 1M size`);",
+							"        }",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{GITHUB_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/vnd.github.v3+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://api.github.com/search/repositories?q=react&per_page=5",
+					"protocol": "https",
+					"host": [
+						"api",
+						"github",
+						"com"
+					],
+					"path": [
+						"search",
+						"repositories"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "react"
+						},
+						{
+							"key": "per_page",
+							"value": "5"
+						}
+					]
+				},
+				"description": "Search Git Hub Repositories"
+			},
+			"response": []
+		},
+		{
+			"name": "SearchReset",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Placeholder Request to  loop until the retry time is reached",
+							"const retry = parseInt(pm.environment.get(\"search_retry\"));",
+							"const now = Date.now();",
+							"if (now < retry) {",
+							"    postman.setNextRequest(pm.info.requestName);",
+							"} else {",
+							"    pm.environment.unset(\"search_retry\");",
+							"    pm.execution.setNextRequest(\"SearchRepos\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://postman-echo.com/get?wait=true",
+					"protocol": "https",
+					"host": [
+						"postman-echo",
+						"com"
+					],
+					"path": [
+						"get"
+					],
+					"query": [
+						{
+							"key": "wait",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

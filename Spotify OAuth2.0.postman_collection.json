@@ -1,0 +1,101 @@
+{
+	"info": {
+		"_postman_id": "617f4d90-efa9-4346-9f64-e9808ac8718b",
+		"name": "Spotify OAuth2.0",
+		"description": "1. **Set up OAuth 2.0 authentication in Postman for a given API. Walk through the configuration process and any challenges you encountered.**\n    \n\nSteps for Setting up OAuth 2.0 in Postman:\n\n1. Register a Developer App by navigating to Spotify Developer Dashboard\n    \n\nCreate an app and copy Client ID & Client Secret.\n\n1. Set Environment variables for Client ID & Client Secret and provide the values copied in step 1.\n    \n2. Navigate to the collection in Postman Authorisation Tab\n    \n\nAuth Type: OAuth 2.0\n\nGrant Type: Client Credentials\n\nClientID & Client Secret should be fetched from the environment variables\n\nClient Authentication :Send As Basic Auth Header\n\nClick on Save button.\n\n1. Request Access Token\n    \n\nClick on \"Get New Access Token\"\n\nAuthentication complete message will be shown .\n\nClick on Proceed to use the token\n\n✅ Calling API Endpoints.\n\nYou can now make calls to endpoints like:\n\nGET [https://api.spotify.com/v1/search?q=adele&amp;type=artist](https://api.spotify.com/v1/search?q=adele&type=artist)  \nGet [https://api.spotify.com/v1/tracks/3KkXRkHbMCARz0aVfEt68P](https://api.spotify.com/v1/tracks/3KkXRkHbMCARz0aVfEt68P)\n\nChallenges with OAUTH2.0:\n\n1.401 Unauthorised error will be thrown when Token is invalid, expired, or missing. Verify that the \"Get New Access Token.\" is working as expected and verify that the correct client id & secret is used. Make sue that the correct Auth URL or Access Token URL are used.\n\n2.Token Not Being Used in Request. After successfully generating a token, it might not be automatically applied to the request.  \nAfter clicking \"Use Token\" in the \"Manage Access Tokens\" dialog, ensure that the \"Authorization\" header in the request is set to Bearer Token and the token value is populated. If not, need to manually select the token from the \"Available Tokens\" dropdown.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36255263",
+		"_collection_link": "https://www.postman.com/radhabontha/workspace/7153c75a-8ad5-4f1c-9260-59e486bc6bdd/collection/36255263-617f4d90-efa9-4346-9f64-e9808ac8718b?action=share&source=collection_link&creator=36255263"
+	},
+	"item": [
+		{
+			"name": "Search Artist",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{spotify-url}}/v1/search?q=adele&type=artist",
+					"host": [
+						"{{spotify-url}}"
+					],
+					"path": [
+						"v1",
+						"search"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "adele"
+						},
+						{
+							"key": "type",
+							"value": "artist"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Track by ID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{spotify-url}}/v1/tracks/3KkXRkHbMCARz0aVfEt68P",
+					"host": [
+						"{{spotify-url}}"
+					],
+					"path": [
+						"v1",
+						"tracks",
+						"3KkXRkHbMCARz0aVfEt68P"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "accessTokenUrl",
+				"value": "https://accounts.spotify.com/api/token",
+				"type": "string"
+			},
+			{
+				"key": "grant_type",
+				"value": "client_credentials",
+				"type": "string"
+			},
+			{
+				"key": "clientId",
+				"value": "{{client_id}}",
+				"type": "string"
+			},
+			{
+				"key": "clientSecret",
+				"value": "{{client_secret}}",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	}
+}

@@ -1,0 +1,553 @@
+{
+	"info": {
+		"_postman_id": "b2c33a19-980b-4bff-85b4-1c6eb655ed15",
+		"name": "ReqRes Collection-API Testing and Debugging-Monitoring",
+		"description": "1. **Create a Postman collection to test a RESTful API. Include tests for various endpoints and explain your approach to validating responses.StartFragment**\n    \n    1. **Use Postman’s Pre-request and Tests scripts to dynamically set variables and validate responses. Provide examples and explain your approach.**\n        \n\nThe above tests are completed using pre & post request scripts .\n\nPre request scripts are used to dynamically set the request data so that the uniqueness can be achived.\n\nPost Requests scripts used to verify the response code and assert response data against expected details.\n\nEnvironment / Collection variables helps to maintain the collections with less effort\n\nWhen switching between environments we no need to manually update all end points and certain variables. Also helps to chain the requests. Save the reponse from one API to an environment / collection variable and can be passed to subsequent requests with manually pasting the value.\n\n**2.Given a failing API request, use Postman to debug the issue. Identify the problem and describe the steps you took to resolve it. - GetSingleUser-InvalidUserID**\n\nThings to Check:\n\n- Is URL correctly formed\n    \n- Are there any Spelling errors or missing path\n    \n- Are correct parameters supplied like valid userid supplied to fetch details from the server\n    \n- Did I supply correct authorisation details?\n    \n- Am I using correct HTTP method for the required operation (POST ,GET ,PUT DELETE)\n    \n- Is Corrct Correc Request Body Sent and correct ContentTYpe is set in headers\n    \n- Verify the response details for status codes\n    \n- Verify Postman console logs ( View Show Postman Console ) for any issues like failed redirects , malformed headers and timeouts\n    \n- Fix the issue by follwoing the above steps and Retest the API end point to get the success response\n    \n\n**3.Write a Postman script to automate the testing of an API endpoint. Explain the logic behind your script and how it ensures comprehensive testing.**\n\nAdded Post Scripts fo all the end points which will verify the below:\n\n- Validates functional correctness (data matches expectations)\n    \n- Validates API Response schema is followed\n    \n- Verifies that the API end points responds as expected i.e., performance is verified\n    \n\n**Advanced Postman Features:**\n\n**3.Create a Postman monitor to regularly test an API. Describe how you configured the monitor and how you handle notifications for failed tests.**\n\n**API monitoring** is the process of continuously tracking an API’s availability, performance, and functionality to detect issues in real-time.\n\n**Steps:**\n\n1. Navigate to collection click the **ellipsis (...)** select **\"Monitor Collection\"**\n    \n2. Fill in the below details:\n    \n    - **Monitor name**:\n        \n    - **Region**: Choose closest to your user base\n        \n    - **Run this monitor**: Hour Timer / Week Timer\n        \n    - **Select environment**: SystemTest/Preprod/Stage\n        \n    - **Receive Email notifications for Run failures and error:**\n        \n    - **Retry if run fails**: optional\n        \n    - Request Time out :\n        \n    - Set delat between requests:\n        \n\n**Handling notifications for failures:**\n\n- Failure notification Email will be sent to the Team Members mentioned on the notification\n    \n- VIew Run Results & Last Run summary will be shown to the receipient\n    \n- Click on View Run results\n    \n- Click on the Test run and view Test results\n    \n- Verify the console logs for the failed tests\n    \n- Fix the errors by adjusting environment or collection variables\n    \n- Rerun the monitor\n    \n- Monior reads the values of the environment and collection variables from inital instead of current .Make sure that the intial values are updated correctly prior to running the monitor\n    \n- Once Monitor Runs successfully and email will be triggered saying that Issues resolved in the monitor\n    \n\n<img src=\"https://content.pstmn.io/03ed2a00-2542-4a84-b1b7-e1c039cb0525/aW1hZ2UucG5n\" width=\"1487\" height=\"1008\">",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36255263",
+		"_collection_link": "https://www.postman.com/radhabontha/workspace/7153c75a-8ad5-4f1c-9260-59e486bc6bdd/collection/36255263-b2c33a19-980b-4bff-85b4-1c6eb655ed15?action=share&source=collection_link&creator=36255263"
+	},
+	"item": [
+		{
+			"name": "CreateUser-Dynamic Variables",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// define schema for the Response",
+							"const schema = {",
+							"  \"$schema\": \"http://json-schema.org/draft-04/schema#\",",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"id\": {",
+							"      \"type\": \"string\"",
+							"    },",
+							"    \"createdAt\": {",
+							"      \"type\": \"string\"",
+							"    }",
+							"  }",
+							"};",
+							"",
+							"",
+							"// Verify  that the Response is as per the expected schema",
+							"// as it  confirms that no extra fields are included or omitted from the response",
+							"",
+							"pm.test(\"Response schema is valid\", function () {",
+							"  const response = pm.response.json();",
+							"  pm.expect(tv4.validate(response, schema)).to.be.true;",
+							"});",
+							"",
+							"//Verify that the correct status code is returned ",
+							"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+							"",
+							"// Stores the created user ID in a collection variable named createdUserId",
+							"var jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"createdUserId\", jsonData.id);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{api_key}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"{{$randomFullName}}\",\n  \"job\": \"{{$randomJobTitle}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base-url}}",
+					"host": [
+						"{{base-url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateUser-Using Prerequest Script",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// define schema for the Response",
+							"const schema = {",
+							"  \"$schema\": \"http://json-schema.org/draft-04/schema#\",",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"id\": {",
+							"      \"type\": \"string\"",
+							"    },",
+							"    \"createdAt\": {",
+							"      \"type\": \"string\"",
+							"    }",
+							"  }",
+							"};",
+							"",
+							"",
+							"// Verify  that the Response is as per the expected schema",
+							"// as it  confirms that no extra fields are included or omitted from the response",
+							"",
+							"pm.test(\"Response schema is valid\", function () {",
+							"  const response = pm.response.json();",
+							"  pm.expect(tv4.validate(response, schema)).to.be.true;",
+							"});",
+							"",
+							"//Verify that the correct status code is returned ",
+							"pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+							"",
+							"// Stores the created user ID in a collection variable named createdUserId",
+							"var jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"createdUserId\", jsonData.id);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"\r",
+							"/***\r",
+							" * This function generates a random username of specific length and  saved to a collection variable\r",
+							" * @param {int} length\r",
+							" */\r",
+							"function createRandomUserName(length) {\r",
+							"    var randomName           = 'AutoTest ';\r",
+							"    var charSet       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';\r",
+							"    var charactersLength = charSet.length;\r",
+							"    for ( var i = 0; i < length; i++ ) {\r",
+							"      randomName += charSet.charAt(Math.floor(Math.random() * \r",
+							" charactersLength));\r",
+							"   }\r",
+							"   pm.collectionVariables.set(\"username\", randomName);\r",
+							"   return randomName;\r",
+							"}\r",
+							"\r",
+							"console.log(createRandomUserName(35));"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{api_key}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"{{username}}\",\n  \"job\": \"{{$randomJobTitle}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base-url}}",
+					"host": [
+						"{{base-url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetUsersByPage",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"// Verify that the correct status code is returned",
+							"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+							"",
+							"// Verify that the Service responded within the allowed time span",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"//Deine schema for the Response",
+							"",
+							"pm.test(\"Schema is valid\", function () {",
+							"    var schema = {",
+							"        type: \"object\",",
+							"        properties: {",
+							"            page: { type: \"number\" },",
+							"            per_page: { type: \"number\" },",
+							"            total: { type: \"number\" },",
+							"            total_pages: { type: \"number\" },",
+							"            data: {",
+							"                type: \"array\",",
+							"                items: {",
+							"                    type: \"object\",",
+							"                    properties: {",
+							"                        id: { type: \"number\" },",
+							"                        email: { type: \"string\", pattern: \"^[\\\\w-\\\\.]+@([\\\\w-]+\\\\.)+[\\\\w-]{2,4}$\" },",
+							"                        first_name: { type: \"string\" },",
+							"                        last_name: { type: \"string\" },",
+							"                        avatar: { type: \"string\", pattern: \"^https?:\\\\/\\\\/.+\\\\.(jpg|jpeg|png|gif)$\" }",
+							"                    },",
+							"                    required: [\"id\", \"email\", \"first_name\", \"last_name\", \"avatar\"]",
+							"                }",
+							"            },",
+							"            support: {",
+							"                type: \"object\",",
+							"                properties: {",
+							"                    url: { type: \"string\", minLength: 1 },",
+							"                    text: { type: \"string\", minLength: 1 }",
+							"                },",
+							"                required: [\"url\", \"text\"]",
+							"            }",
+							"        },",
+							"        required: [\"page\", \"per_page\", \"total\", \"total_pages\", \"data\", \"support\"]",
+							"    };",
+							"",
+							"    var response = pm.response.json();",
+							"",
+							"    // Resposne schema validtaion",
+							"    pm.expect(tv4.validate(response, schema)).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{api_key}}"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}?page=1",
+					"host": [
+						"{{base-url}}"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetSingleUser-InvalidUserID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Verify that correct sttaus code returned. 404 returned as the requested resource doesn't exist",
+							"pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{api_key}}"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}/{{createdUserId}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"{{createdUserId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetSingleUser-ValidUserID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//Verify that correct status code  returned",
+							"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+							"",
+							"// Verify that the responsetime is with in the allowed limits",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"// REsponse schema validation",
+							"pm.test(\"Validate the schema of the response against the expected structure\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.all.keys('data', 'support');",
+							"",
+							"    pm.expect(responseData.data).to.be.an('object').that.has.all.keys('id', 'email', 'first_name', 'last_name', 'avatar');",
+							"    pm.expect(responseData.support).to.be.an('object').that.has.all.keys('url', 'text');",
+							"});",
+							"",
+							"// Verify that the User details returned from  the services are as expected for the particular user",
+							"const responseData = pm.response.json();",
+							"var savedEmail = pm.collectionVariables.get(\"email\");",
+							"var savedFirstName = pm.collectionVariables.get(\"FirstName\");",
+							"var savedLastName = pm.collectionVariables.get(\"LastName\");",
+							"var savedUserID = pm.collectionVariables.get(\"UserID\");",
+							"var savedAvatar = pm.collectionVariables.get(\"Avatar\");",
+							"var savedURL = pm.collectionVariables.get(\"url\");",
+							"var savedText = pm.collectionVariables.get(\"text\");",
+							"",
+							"// Check response values exist",
+							"pm.test(\"ID is as expected\", () => pm.expect(responseData.data.id.toString()).to.eql(savedUserID));",
+							"pm.test(\"First Name is as expected\", () => pm.expect(responseData.data.first_name).to.eql(savedFirstName));",
+							"pm.test(\"Last Name is as expected\", () => pm.expect(responseData.data.last_name).to.eql(savedLastName));",
+							"pm.test(\"Email is as expected\", () => pm.expect(responseData.data.email).to.eql(savedEmail));",
+							"pm.test(\"Avatar is as expected\", () => pm.expect(responseData.data.avatar).to.eql(savedAvatar));",
+							"pm.test(\"URL is as expected\", () => pm.expect(responseData.support.url).to.eql(savedURL));",
+							"pm.test(\"Text is as expected\", () => pm.expect(responseData.support.text).to.eql(savedText));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{api_key}}"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}/{{UserID}}",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"{{UserID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateUser",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verify that correct status code returned .",
+							"//200 returned as the request was successful and the server has returned the requested data.",
+							"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{api_key}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Jane Doe\",\n  \"job\": \"Manager\"\n}"
+				},
+				"url": {
+					"raw": "{{base-url}}/2",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PartialUpdate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{api_key}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"job\": \"Team Lead\"\n}"
+				},
+				"url": {
+					"raw": "{{base-url}}/2",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteUser",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"//Verify that correct status code is returned . \r",
+							"// 204 returned as the server accepts the request for asynchronous processing, but it doesn’t guarantee the final result immediately.\r",
+							"pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{api_key}}"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}/2",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"2"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "createdUserId",
+			"value": ""
+		},
+		{
+			"key": "UserID",
+			"value": "7"
+		},
+		{
+			"key": "FirstName",
+			"value": "Michael",
+			"type": "string"
+		},
+		{
+			"key": "LastName",
+			"value": "Lawson",
+			"type": "string"
+		},
+		{
+			"key": "Avatar",
+			"value": "https://reqres.in/img/faces/7-image.jpg",
+			"type": "string"
+		},
+		{
+			"key": "url",
+			"value": "https://contentcaddy.io?utm_source=reqres&utm_medium=json&utm_campaign=referral",
+			"type": "string"
+		},
+		{
+			"key": "text",
+			"value": "Tired of writing endless social media content? Let Content Caddy generate it for you.",
+			"type": "string"
+		},
+		{
+			"key": "email",
+			"value": "michael.lawson@reqres.in",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": ""
+		}
+	]
+}
