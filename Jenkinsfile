@@ -8,9 +8,6 @@ pipeline {
         REPORT_HTML = 'newman-report.html'
     }
 
-    tools {
-        nodejs 'NodeJS_18' // Optional: use the name of your configured NodeJS tool in Jenkins
-    }
 
     stages {
         stage('Checkout Code') {
