@@ -18,13 +18,13 @@ pipeline {
 
         stage('Install Newman & Reporter') {
             steps {
-                sh 'npm install -g newman newman-reporter-htmlextra'
+                bat 'npm install -g newman newman-reporter-htmlextra'
             }
         }
 
         stage('Run API Tests') {
             steps {
-                sh """
+                bat """
                 newman run $COLLECTION \
                     --environment $ENVIRONMENT \
                     --reporters cli,junit,htmlextra \
