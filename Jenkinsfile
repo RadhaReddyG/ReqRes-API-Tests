@@ -6,6 +6,7 @@ pipeline {
         ENVIRONMENT = 'SystemTest.postman_environment.json'
         REPORT_XML = 'newman-report.xml'
         REPORT_HTML = 'newman-report.html'
+ 	PATH = "C:\\Users\\YourName\\AppData\\Roaming\\npm;${env.PATH}"
     }
 
 
@@ -25,7 +26,7 @@ pipeline {
         stage('Run API Tests') {
             steps {
                 bat """
-                newman run $COLLECTION \
+                C:\Users\User\AppData\Roaming\npm\newman.cmd run $COLLECTION \
                     --environment $ENVIRONMENT \
                     --reporters cli,junit,htmlextra \
                     --reporter-junit-export $REPORT_XML \
