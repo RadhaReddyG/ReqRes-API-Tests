@@ -6,9 +6,8 @@ pipeline {
         ENVIRONMENT = 'SystemTest.postman_environment.json'
         REPORT_XML = 'newman-report.xml'
         REPORT_HTML = 'newman-report.html'
- 	PATH = "C:\\Users\\YourName\\AppData\\Roaming\\npm;${env.PATH}"
+        PATH = "C:\\Users\\User\\AppData\\Roaming\\npm;${env.PATH}"
     }
-
 
     stages {
         stage('Checkout Code') {
@@ -25,19 +24,13 @@ pipeline {
 
         stage('Run API Tests') {
             steps {
-                bat """
-                C:\Users\User\AppData\Roaming\npm\newman.cmd run $COLLECTION \
-                    --environment $ENVIRONMENT \
-                    --reporters cli,junit,htmlextra \
-                    --reporter-junit-export $REPORT_XML \
-                    --reporter-htmlextra-export $REPORT_HTML
-                """
+                bat "\"C:\\Users\\User\\AppData\\Roaming\\npm\\newman.cmd\" run \"%COLLECTION%\" --environment \"%ENVIRONMENT%\" --reporters cli,junit,htmlextra --reporter-junit-export \"%REPORT_XML%\" --reporter-htmlextra-export \"%REPORT_HTML%\""
             }
         }
 
         stage('Publish JUnit Results') {
             steps {
-                junit "$REPORT_XML"
+                junit "${env.REPORT_XML}"
             }
         }
 
@@ -48,7 +41,7 @@ pipeline {
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
                     reportDir: '.',
-                    reportFiles: "$REPORT_HTML",
+                    reportFiles: "${env.REPORT_HTML}",
                     reportName: 'Newman API Report'
                 ])
             }
